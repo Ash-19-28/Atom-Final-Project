@@ -1,9 +1,9 @@
-public class Node {
-        Passenger data;
-        Node next;
+class Node {
+    Passenger data;
+    Node next;
 
-        public Node(Passenger data) {
-            this.data = data;
-            this.next = null;
-        }
+    public Node(Passenger data) {
+        this.data = data;
+        this.next = null;
     }
+}
