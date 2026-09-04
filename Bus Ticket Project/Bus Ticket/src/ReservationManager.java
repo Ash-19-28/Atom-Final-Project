@@ -1,5 +1,4 @@
 import java.util.ArrayList;
-import java.util.Scanner;
 
 public class ReservationManager {
     public static final int TOTAL_SEATS = 4;
@@ -11,9 +10,12 @@ public class ReservationManager {
         return TOTAL_SEATS - confirmedList.size();
     }
 
-    public String bookTicket(String name) {
-        if (name.isEmpty()) {
-            return "Name cannot be empty.";
+    public String bookTicket(String name) throws InvalidNameException {
+        if (name == null || name.trim().isEmpty()) {
+            throw new InvalidNameException("Passenger name cannot be blank.");
+        }
+        if (!name.matches("^[a-zA-Z\\s]+$")) {
+            throw new InvalidNameException("Name must only contain letters.");
         }
 
         int ticketId = ticketCounter++;
@@ -22,14 +24,19 @@ public class ReservationManager {
             int seatNumber = findAvailableSeat();
             Passenger passenger = new Passenger(ticketId, name, seatNumber);
             confirmedList.add(passenger);
-            return "BOOKED: " + name + " (Seat #" + seatNumber + ", Ticket #" + ticketId + ")";
+            return "BOOKED: " + name + " (Seat #" + seatNumber + ", Ticket #" + ticketId + ")\n";
         } else {
             Passenger passenger = new Passenger(ticketId, name, -1);
             waitlist.enqueue(passenger);
-            return "WAITLIST: " + name + " (Pos #" + waitlist.getSize() + ", Ticket #" + ticketId + ")";
+            return "WAITLIST: " + name + " (Pos #" + waitlist.getSize() + ", Ticket #" + ticketId + ")\n";
         }
     }
-    public String cancelTicket(int ticketId) {
+
+    public String cancelTicket(int ticketId) throws InvalidTicketException {
+        if (ticketId <= 0) {
+            throw new InvalidTicketException("Ticket ID must be greater than 0.");
+        }
+
         Passenger cancelledPassenger = null;
         int indexToRemove = -1;
 
@@ -44,23 +51,39 @@ public class ReservationManager {
         if (cancelledPassenger != null) {
             int freedSeat = cancelledPassenger.seatNumber;
             confirmedList.remove(indexToRemove);
-            String result = "CANCELLED: Ticket #" + ticketId + " (" + cancelledPassenger.name + ")\n";
+            String output = "CANCELLED: Ticket #" + ticketId + " (" + cancelledPassenger.name + ")\n";
 
             if (!waitlist.isEmpty()) {
-                Passenger promotedPassenger = waitlist.dequeue();
-                promotedPassenger.seatNumber = freedSeat;
-                confirmedList.add(promotedPassenger);
-                result += "AUTO-PROMOTED: " + promotedPassenger.name + " to Seat #" + freedSeat + "!";
+                Passenger promoted = waitlist.dequeue();
+                promoted.seatNumber = freedSeat;
+                confirmedList.add(promoted);
+                output += "AUTO-PROMOTED: " + promoted.name + " to Seat #" + freedSeat + "!\n";
             } else {
-                result += "Seat #" + freedSeat + " is now vacant.";
+                output += "Seat #" + freedSeat + " is now vacant.\n";
             }
-            return result;
+            return output;
         } else {
-            return "Ticket ID #" + ticketId + " not found.";
+            return "Ticket ID #" + ticketId + " not found in confirmed list.\n";
         }
     }
 
-    public int findAvailableSeat() {
+    public String getConfirmedText() {
+        if (confirmedList.isEmpty()) {
+            return "No confirmed passengers.\n";
+        }
+        StringBuilder sb = new StringBuilder("--- Confirmed Passengers ---\n");
+        for (Passenger p : confirmedList) {
+            sb.append("Seat #").append(p.seatNumber).append(" | Ticket #").append(p.ticketId)
+                    .append(" | ").append(p.name).append("\n");
+        }
+        return sb.toString();
+    }
+
+    public String getWaitlistText() {
+        return "--- Waitlist Queue ---\n" + waitlist.getDisplayList();
+    }
+
+    private int findAvailableSeat() {
         for (int seat = 1; seat <= TOTAL_SEATS; seat++) {
             boolean taken = false;
             for (Passenger p : confirmedList) {
@@ -75,36 +98,4 @@ public class ReservationManager {
         }
         return -1;
     }
-
-    public void viewConfirmed() {
-        if (confirmedList.isEmpty()) {
-            System.out.println("No confirmed passengers.");
-            return;
-        }
-        System.out.println("\n--- Confirmed Passengers ---");
-        for (Passenger p : confirmedList) {
-            System.out.println("Seat: " + p.seatNumber + " | Ticket ID: " + p.ticketId + " | Name: " + p.name);
-        }
-    }
-
-    public void viewWaitlist() {
-        waitlist.display();
-    }
-    public String getConfirmedText() {
-        if (confirmedList.isEmpty()) {
-            return "No confirmed passengers.";
-        }
-        StringBuilder sb = new StringBuilder("--- Confirmed Passengers ---\n");
-        for (Passenger p : confirmedList) {
-            sb.append("Seat: ").append(p.seatNumber)
-                    .append(" | Ticket ID: ").append(p.ticketId)
-                    .append(" | Name: ").append(p.name).append("\n");
-        }
-        return sb.toString().trim();
-    }
-
-    public String getWaitlistText() {
-        return waitlist.getWaitlistText();
-    }
 }
-

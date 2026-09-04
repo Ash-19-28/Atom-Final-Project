@@ -1,4 +1,4 @@
-class Node {
+public class Node {
     Passenger data;
     Node next;
 

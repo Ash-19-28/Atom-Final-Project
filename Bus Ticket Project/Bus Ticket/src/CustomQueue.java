@@ -1,4 +1,4 @@
-class CustomQueue {
+public class CustomQueue {
     private Node front;
     private Node rear;
     private int size;
@@ -41,32 +41,19 @@ class CustomQueue {
         return size;
     }
 
-    public void display() {
+    public String getDisplayList() {
         if (isEmpty()) {
-            System.out.println("Waitlist is empty.");
-            return;
+            return "Waitlist is empty.\n";
         }
+        StringBuilder sb = new StringBuilder();
         Node current = front;
-        int position = 1;
+        int pos = 1;
         while (current != null) {
-            System.out.println("Position " + position + " | Ticket ID: " + current.data.ticketId + " | Name: " + current.data.name);
+            sb.append("WL Pos ").append(pos).append(" | Ticket #").append(current.data.ticketId)
+                    .append(" | ").append(current.data.name).append("\n");
             current = current.next;
-            position++;
+            pos++;
         }
-    }
-    public String getWaitlistText() {
-        if (isEmpty()) {
-            return "Waitlist is empty.";
-        }
-        StringBuilder sb = new StringBuilder("--- Waitlist Queue ---\n");
-        Node current = front;
-        int position = 1;
-        while (current != null) {
-            sb.append("Pos ").append(position++)
-                    .append(" | Ticket ID: ").append(current.data.ticketId)
-                    .append(" | Name: ").append(current.data.name).append("\n");
-            current = current.next;
-        }
-        return sb.toString().trim();
+        return sb.toString();
     }
 }
